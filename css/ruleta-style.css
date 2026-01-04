@@ -1,0 +1,474 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Press Start 2P', cursive;
+    background: linear-gradient(135deg, #4e6c7a, #2c3e50);
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: stretch;
+    padding: 20px;
+    position: relative;
+    overflow-x: hidden;
+}
+
+/* Fondo con patrón Pokémon */
+.pokemon-bg {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image: 
+        radial-gradient(circle at 15% 20%, rgba(255, 215, 0, 0.03) 2px, transparent 3px),
+        radial-gradient(circle at 85% 80%, rgba(255, 0, 0, 0.03) 2px, transparent 3px),
+        radial-gradient(circle at 50% 50%, rgba(0, 255, 255, 0.03) 2px, transparent 3px);
+    background-size: 80px 80px;
+    z-index: -1;
+}
+
+/* Contenedor principal */
+.nuzlocke-container {
+    background: linear-gradient(145deg, #e6e6e6, #ffffff);
+    border: 6px solid #000;
+    border-radius: 20px;
+    padding: 25px;
+    width: 100%;
+    max-width: 1000px;
+    box-shadow: 
+        0 10px 30px rgba(0, 0, 0, 0.5),
+        inset 0 0 20px rgba(255, 215, 0, 0.3);
+    position: relative;
+    margin-bottom: 40px;
+}
+
+/* Header estilo Pokédex */
+.pokemon-header {
+    text-align: center;
+    margin-bottom: 30px;
+    position: relative;
+}
+
+.pokedex-top {
+    background: #ff0000;
+    height: 40px;
+    border-radius: 20px 20px 0 0;
+    display: flex;
+    justify-content: space-between;
+    padding: 0 15px;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.pokedex-light {
+    width: 12px;
+    height: 12px;
+    background: #00ff00;
+    border-radius: 50%;
+    box-shadow: 0 0 10px #00ff00;
+}
+
+.pokedex-speaker {
+    width: 30px;
+    height: 8px;
+    background: #333;
+    border-radius: 4px;
+}
+
+.pokemon-title {
+    color: #ff0000;
+    font-size: 1.4rem;
+    text-shadow: 2px 2px 0 #000;
+    letter-spacing: 1px;
+    line-height: 1.4;
+}
+
+/* --- Sección de Contador Diario (reemplaza tiradas) --- */
+.daily-countdown-section {
+    margin-bottom: 25px;
+    background: linear-gradient(145deg, #fff3cd, #ffeaa7);
+    border: 4px solid #daa520;
+    border-radius: 18px;
+    padding: 20px;
+    text-align: center;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+}
+
+.countdown-display {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 15px;
+}
+
+.countdown-label {
+    font-size: 0.9rem;
+    color: #856404;
+    text-transform: uppercase;
+    font-weight: bold;
+    text-shadow: 1px 1px 0 #000;
+}
+
+.countdown-status {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 2.4rem;
+    font-weight: bold;
+    color: #d35400;
+    text-shadow: 3px 3px 0 #000;
+    min-height: 60px;
+    justify-content: center;
+    width: 100%;
+}
+
+.countdown-status.ready {
+    color: #27ae60;
+    text-shadow: 2px 2px 0 #000;
+}
+
+.countdown-status.waiting {
+    color: #e74c3c;
+    animation: pulseWarning 1s infinite;
+}
+
+@keyframes pulseWarning {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+}
+
+/* Contenedor principal de la ruleta */
+.wheel-main-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 30px;
+    margin-bottom: 30px;
+}
+
+.wheel-container {
+    position: relative;
+    margin: 0 auto;
+    width: 600px;
+    height: 600px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+#wheelCanvas {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    border: 6px solid #000;
+    background: #f8f9fa;
+    box-shadow: 0 0 25px rgba(0, 0, 0, 0.5);
+    image-rendering: pixelated;
+}
+
+.wheel-pointer {
+    position: absolute;
+    top: -40px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 0;
+    height: 0;
+    border-left: 20px solid transparent;
+    border-right: 20px solid transparent;
+    border-top: 40px solid #ff0000;
+    z-index: 20;
+    filter: drop-shadow(0 0 8px rgba(255, 0, 0, 0.9));
+    animation: pointerPulse 1s infinite;
+    pointer-events: none;
+}
+
+@keyframes pointerPulse {
+    0%, 100% { transform: translateX(-50%) scale(1); }
+    50% { transform: translateX(-50%) scale(1.1); }
+}
+
+.wheel-center {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 125px;
+    height: 125px;
+    background: linear-gradient(145deg, #ffd700, #ff6b6b);
+    border-radius: 50%;
+    border: 6px solid #000;
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 0 25px rgba(255, 215, 0, 0.9);
+    font-size: 3rem;
+    color: white;
+    text-shadow: 0 0 6px rgba(0,0,0,0.8);
+    animation: pulse 1s infinite;
+    pointer-events: none;
+}
+
+.wheel-center::before {
+    content: '🎯';
+}
+
+@keyframes pulse {
+    0%, 100% { transform: translate(-50%, -50%) scale(1); }
+    50% { transform: translate(-50%, -50%) scale(1.1); }
+}
+
+/* Controles de la ruleta */
+.spin-controls {
+    text-align: center;
+    margin-top: 25px;
+}
+
+.spin-button {
+    background: linear-gradient(45deg, #e74c3c, #c0392b);
+    color: white;
+    border: none;
+    padding: 17px 35px;
+    border-radius: 25px;
+    font-family: 'Press Start 2P', cursive;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 7px 0 #922b21;
+    position: relative;
+    overflow: hidden;
+    margin-bottom: 20px;
+}
+
+.spin-button:hover:not(:disabled) {
+    transform: translateY(-4px);
+    box-shadow: 0 11px 0 #922b21;
+}
+
+.spin-button:disabled {
+    background: linear-gradient(45deg, #95a5a6, #7f8c8d);
+    box-shadow: 0 7px 0 #6c7a89;
+    cursor: not-allowed;
+    transform: none;
+}
+
+.button-icon {
+    margin-left: 12px;
+    font-size: 1.4rem;
+}
+
+/* Resultado */
+.result-display {
+    font-size: 1rem;
+    color: #2c3e50;
+    min-height: 30px;
+    margin-top: 15px;
+    padding: 20px;
+    background: rgba(255, 255, 255, 0.9);
+    border: 4px solid #000;
+    border-radius: 15px;
+    text-align: center;
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.result-display.success {
+    color: #27ae60;
+    background: rgba(46, 204, 113, 0.1);
+    border-color: #27ae60;
+}
+
+.result-display.error {
+    color: #e74c3c;
+    background: rgba(231, 76, 60, 0.1);
+    border-color: #e74c3c;
+}
+
+.result-display.winning {
+    animation: flash 0.5s 3;
+    color: #f1c40f;
+    background: rgba(241, 196, 15, 0.1);
+    border-color: #f1c40f;
+}
+
+@keyframes flash {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+}
+
+/* Historial de resultados */
+.history-section {
+    margin: 30px 0;
+    background: linear-gradient(145deg, #f8f9fa, #e9ecef);
+    border: 4px solid #000;
+    border-radius: 20px;
+    padding: 25px;
+}
+
+.history-title {
+    text-align: center;
+    color: #2c3e50;
+    font-size: 1.2rem;
+    margin-bottom: 20px;
+    text-shadow: 1px 1px 0 #000;
+}
+
+.history-container {
+    max-height: 350px;
+    overflow-y: auto;
+    padding: 15px;
+    background: rgba(255, 255, 255, 0.6);
+    border-radius: 12px;
+    border: 3px solid #ccc;
+}
+
+.history-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.history-item {
+    background: linear-gradient(145deg, #ffffff, #f8f9fa);
+    border: 3px solid #000;
+    border-radius: 10px;
+    padding: 12px 18px;
+    font-size: 0.8rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    animation: fadeIn 0.3s ease;
+}
+
+.history-item.win {
+    border-color: #f1c40f;
+    background: linear-gradient(145deg, #fff9c4, #ffeb3b);
+}
+
+.history-item.lose {
+    border-color: #e74c3c;
+    background: linear-gradient(145deg, #ffcdd2, #f44336);
+}
+
+.history-time {
+    color: #7f8c8d;
+    font-size: 0.7rem;
+    margin-left: 12px;
+}
+
+.history-empty {
+    text-align: center;
+    color: #7f8c8d;
+    font-style: italic;
+    padding: 25px;
+    font-size: 0.9rem;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Botón de volver */
+.back-button-container {
+    text-align: center;
+}
+
+.back-button {
+    background: linear-gradient(45deg, #9b59b6, #8e44ad);
+    color: white;
+    border: none;
+    padding: 15px 30px;
+    border-radius: 25px;
+    font-family: 'Press Start 2P', cursive;
+    font-size: 0.8rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 6px 0 #6c3483;
+}
+
+.back-button:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 9px 0 #6c3483;
+}
+
+/* Responsive */
+@media (max-width: 800px) {
+    .nuzlocke-container {
+        padding: 15px;
+        margin: 10px;
+        max-width: 100%;
+    }
+    
+    .wheel-container {
+        width: 400px;
+        height: 400px;
+    }
+    
+    .wheel-pointer {
+        top: -30px;
+        border-left: 15px solid transparent;
+        border-right: 15px solid transparent;
+        border-top: 30px solid #ff0000;
+    }
+    
+    .wheel-center {
+        width: 100px;
+        height: 100px;
+        font-size: 2.5rem;
+    }
+    
+    .pokemon-title {
+        font-size: 1rem;
+    }
+    
+    .spin-button {
+        padding: 14px 28px;
+        font-size: 0.8rem;
+    }
+    
+    .result-display {
+        max-width: 350px;
+        padding: 14px;
+        font-size: 0.7rem;
+    }
+}
+
+@media (max-width: 600px) {
+    .wheel-container {
+        width: 300px;
+        height: 300px;
+    }
+    
+    .wheel-pointer {
+        top: -25px;
+        border-left: 12px solid transparent;
+        border-right: 12px solid transparent;
+        border-top: 25px solid #ff0000;
+    }
+    
+    .wheel-center {
+        width: 80px;
+        height: 80px;
+        font-size: 2rem;
+    }
+    
+    .pokemon-title {
+        font-size: 0.9rem;
+    }
+    
+    .spin-button {
+        padding: 12px 24px;
+        font-size: 0.7rem;
+    }
+    
+    .result-display {
+        max-width: 280px;
+        padding: 12px;
+        font-size: 0.6rem;
+    }
+}

@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PokéDex - Panel</title>
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        .dashboard {
+            text-align: center;
+            padding: 2rem;
+            background: linear-gradient(135deg, #ff6b6b 0%, #4ecdc4 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .pokeball {
+            width: 100px;
+            height: 100px;
+            background: radial-gradient(circle at 30% 30%, white 40%, black 45%, red 60%);
+            border-radius: 50%;
+            margin: 0 auto 2rem;
+            position: relative;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            border: 4px solid white;
+        }
+        
+        .pokeball::before {
+            content: "";
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 60px;
+            height: 60px;
+            background: white;
+            border-radius: 50%;
+            border: 4px solid black;
+        }
+        
+        .pokeball::after {
+            content: "";
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 20px;
+            height: 20px;
+            background: black;
+            border-radius: 50%;
+        }
+        
+        .user-info {
+            background: linear-gradient(145deg, #ffffff, #f0f0f0);
+            padding: 1.5rem;
+            border-radius: 20px;
+            margin: 1rem 0;
+            width: 90%;
+            max-width: 400px;
+            border: 4px solid #ff0000;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+        
+        .user-info p {
+            margin: 10px 0;
+            font-size: 0.8rem;
+            color: #333;
+        }
+        
+        .admin-content {
+            background: linear-gradient(45deg, #ffd700, #ff0000);
+            padding: 1.5rem;
+            border-radius: 20px;
+            margin-top: 1.5rem;
+            width: 90%;
+            max-width: 400px;
+            border: 4px solid #000;
+            color: white;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+        }
+        
+        .logout-btn {
+            background: linear-gradient(45deg, #ff0000, #ffd700);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 12px;
+            font-family: 'Press Start 2P', cursive;
+            font-size: 0.8rem;
+            cursor: pointer;
+            margin-top: 1.5rem;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+            transition: transform 0.3s;
+        }
+        
+        .logout-btn:hover {
+            transform: scale(1.05);
+        }
+        
+        .role-info {
+            margin-top: 15px;
+            font-weight: bold;
+            color: #ff0000;
+            font-size: 0.9rem;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.3);
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard">
+        <div class="pokeball"></div>
+        <h1>¡BIENVENIDO ENTRENADOR!</h1>
+        <div class="user-info">
+            <p>EMAIL: <span id="userEmail"></span></p>
+            <div id="roleInfo" class="role-info" style="display: none;"></div>
+        </div>
+        <button class="logout-btn" id="logoutBtn">¡CERRAR SESIÓN!</button>
+        <div id="adminSection" style="display: none;" class="admin-content">
+            <h2>¡ZONA DE LÍDERES!</h2>
+            <p>CONTENIDO EXCLUSIVO PARA ADMINISTRADORES</p>
+        </div>
+    </div>
+
+    <script type="module">
+        import { auth, db, signOut, onAuthStateChanged, doc, getDoc } from './js/firebase-config.js';
+
+        const logoutBtn = document.getElementById('logoutBtn');
+        const userEmail = document.getElementById('userEmail');
+        const roleInfo = document.getElementById('roleInfo');
+        const adminSection = document.getElementById('adminSection');
+
+        // Cerrar sesión
+        logoutBtn.addEventListener('click', async () => {
+            await signOut(auth);
+            window.location.href = 'index.html';
+        });
+
+        // Verificar autenticación y cargar datos
+        onAuthStateChanged(auth, async (user) => {
+            if (user) {
+                // Obtener rol desde Firestore
+                const userDoc = await getDoc(doc(db, "users", user.uid));
+                if (userDoc.exists()) {
+                    const userData = userDoc.data();
+                    
+                    if (userData.role === 'admin') {
+                        // Mostrar dashboard de admin
+                        userEmail.textContent = user.email.toUpperCase();
+                        roleInfo.textContent = 'ROL: LÍDER DE GIMNASIO';
+                        roleInfo.style.display = 'block';
+                        adminSection.style.display = 'block';
+                    } else {
+                        // Redirigir a menú principal para usuarios normales
+                        window.location.href = 'menu.html';
+                    }
+                } else {
+                    // Si no existe el documento, redirigir al menú
+                    window.location.href = 'menu.html';
+                }
+            } else {
+                window.location.href = 'index.html';
+            }
+        });
+    </script>
+</body>
+</html>

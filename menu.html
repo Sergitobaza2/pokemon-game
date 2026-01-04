@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pokémon - Menú Principal</title>
+    <link rel="stylesheet" href="css/menu-style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <link rel="icon" href="image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⚡</text></svg>">
+</head>
+<body>
+    <!-- Fondo con patrón Pokémon -->
+    <div class="pokemon-bg"></div>
+
+    <div class="container">
+        <!-- Barra lateral izquierda -->
+        <aside class="sidebar-left">
+            <section class="trainer-info-section">
+                <div class="avatar-wrapper">
+                    <span class="avatar-icon">👤</span>
+                </div>
+                <h2 id="userName" class="trainer-name">ENTRENADOR</h2>
+            </section>
+
+            <section class="lives-panel">
+                <h3 class="panel-title">VIDAS RESTANTES</h3>
+                <div class="lives-display">
+                    <span class="lives-number" id="livesCount">20</span>
+                    <span class="lives-max">/ 20</span>
+                </div>
+                <div class="hearts-container" id="heartsDisplay"></div>
+            </section>
+
+            <section class="coins-panel">
+                <h3 class="panel-title">MONEDAS</h3>
+                <div class="coins-display">
+                    <span class="coins-icon">💰</span>
+                    <span class="coins-number" id="coinsCount">100</span>
+                </div>
+            </section>
+
+            <button id="loseLifeBtn" class="action-button lose-life-btn">
+                <span>PERDER VIDA</span>
+                <span class="btn-icon">💥</span>
+            </button>
+        </aside>
+
+        <!-- Contenido principal -->
+        <main class="main-content">
+            <header class="pokedex-header">
+                <div class="pokedex-top-bar">
+                    <div class="pokedex-light green"></div>
+                    <div class="pokedex-light red"></div>
+                </div>
+                <h1 class="game-title">MENÚ PRINCIPAL</h1>
+            </header>
+
+            <section class="badges-section" id="kantoBadgesSection">
+                <h2 class="section-title">MEDALLAS DE KANTO</h2>
+                <div class="badges-grid" id="badgesGrid"></div>
+            </section>
+
+            <section class="elite-section" id="eliteSectionKanto">
+                <h2 class="section-title">LIGA POKÉMON</h2>
+                <div class="elite-challenge">
+                    <div class="elite-icons">
+                        <span class="elite-icon">🏆</span>
+                        <span class="elite-icon">🥇</span>
+                        <span class="elite-icon">🏅</span>
+                    </div>
+                    <button id="eliteBtn" class="challenge-button">
+                        <span>LIGA SUPERADA</span>
+                        <span class="btn-icon">✨</span>
+                    </button>
+                    <p class="challenge-desc">Derrota a los 8 Líderes de Gimnasio para desbloquear.</p>
+                </div>
+            </section>
+
+            <section class="pokemon-generated-section">
+                <h2 class="section-title">POKÉMON GENERADOS</h2>
+                <div class="pokemon-generated-list" id="generatedPokemonList">
+                    <div class="empty-state">No hay Pokémon generados.</div>
+                </div>
+            </section>
+        </main>
+
+        <!-- Barra lateral derecha -->
+        <aside class="sidebar-right">
+            <section class="cards-section">
+                <h3 class="section-title">TUS CARTAS</h3>
+                <div class="cards-list" id="ownedCardsList">
+                    <div class="empty-state">No has comprado cartas aún.</div>
+                </div>
+            </section>
+
+            <section class="history-section">
+                <h3 class="section-title">HISTORIAL DE USO</h3>
+                <div class="history-list" id="usedCardsList">
+                    <div class="empty-state">No has usado ninguna carta aún.</div>
+                </div>
+            </section>
+
+            <!-- ✅ SECCIÓN DE RECOMPENSAS -->
+            <section class="rewards-section">
+                <h3 class="section-title">RECOMPENSAS</h3>
+                <div class="rewards-list" id="rewardsList">
+                    <div class="empty-state">No tienes recompensas.</div>
+                </div>
+            </section>
+
+            <nav class="navigation">
+                <h3 class="section-title">OPCIONES</h3>
+                <div class="nav-grid">
+                    <button class="nav-btn" data-action="ruleta">
+                        <span class="btn-icon">🎡</span>
+                        <span>Ruleta</span>
+                    </button>
+                    <button class="nav-btn" data-action="randompokemon">
+                        <span class="btn-icon">🎲</span>
+                        <span>Aleatorio</span>
+                    </button>
+                    <button class="nav-btn" data-action="cartas">
+                        <span class="btn-icon">🃏</span>
+                        <span>Cartas</span>
+                    </button>
+                    <button class="nav-btn" data-action="combates">
+                        <span class="btn-icon">⚔️</span>
+                        <span>Combates</span>
+                    </button>
+                </div>
+            </nav>
+
+            <button id="logoutBtn" class="logout-button">CERRAR SESIÓN</button>
+        </aside>
+    </div>
+
+    <div id="menuMessage" class="message-container" style="display: none;"></div>
+
+    <div id="badgeCelebration" class="badge-celebration" style="display: none;">
+        <div class="celebration-content">
+            <img id="celebrationBadgeImage" src="" alt="Medalla" class="badge-image-large">
+            <div id="celebrationBadgeName" class="badge-name-large">MEDALLA</div>
+            <div class="celebration-text">¡FELICIDADES!</div>
+            <div id="celebrationRewards" class="celebration-rewards">
+                <div class="reward-item">
+                    <span class="reward-icon">💰</span>
+                    <span id="celebrationRewardCoins" class="reward-amount">+0</span>
+                </div>
+                <div class="reward-item">
+                    <span class="reward-icon">🎰</span>
+                    <span id="celebrationRewardSpins" class="reward-amount">+0</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts (sin sonidos para evitar 404) -->
+    <script type="module" src="js/firebase-config.js"></script>
+    <script type="module" src="js/menu.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/zarocknz/javascript-winwheel/Winwheel.min.js"></script>
+</body>
+</html>

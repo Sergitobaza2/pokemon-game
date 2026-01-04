@@ -1,0 +1,316 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Press Start 2P', cursive;
+    background: linear-gradient(135deg, #4e6c7a, #2c3e50);
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: stretch;
+    padding: 20px;
+    position: relative;
+    overflow-x: hidden;
+}
+
+.pokemon-bg {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image: 
+        radial-gradient(circle at 15% 20%, rgba(255, 215, 0, 0.03) 2px, transparent 3px),
+        radial-gradient(circle at 85% 80%, rgba(255, 0, 0, 0.03) 2px, transparent 3px),
+        radial-gradient(circle at 50% 50%, rgba(0, 255, 255, 0.03) 2px, transparent 3px);
+    background-size: 80px 80px;
+    z-index: -1;
+}
+
+.battle-container {
+    background: linear-gradient(145deg, #e6e6e6, #ffffff);
+    border: 6px solid #000;
+    border-radius: 20px;
+    padding: 25px;
+    width: 100%;
+    max-width: 1200px; /* Aumentado para acomodar ruletas más grandes */
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    position: relative;
+    margin-bottom: 40px;
+}
+
+.battle-header {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.pokedex-top {
+    background: #ff0000;
+    height: 40px;
+    border-radius: 20px 20px 0 0;
+    display: flex;
+    justify-content: space-between;
+    padding: 0 15px;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.pokedex-light {
+    width: 12px;
+    height: 12px;
+    background: #00ff00;
+    border-radius: 50%;
+    box-shadow: 0 0 10px #00ff00;
+}
+
+.pokedex-speaker {
+    width: 30px;
+    height: 8px;
+    background: #333;
+    border-radius: 4px;
+}
+
+.battle-title {
+    color: #ff0000;
+    font-size: 1.4rem;
+    text-shadow: 2px 2px 0 #000;
+    letter-spacing: 1px;
+}
+
+.wheel-section {
+    margin-bottom: 50px; /* Más espacio entre ruletas */
+    padding: 25px;
+    background: rgba(255, 255, 255, 0.7);
+    border-radius: 16px;
+    border: 3px solid #000;
+}
+
+.wheel-title {
+    text-align: center;
+    color: #2c3e50;
+    font-size: 1.3rem;
+    margin-bottom: 25px;
+    text-shadow: 1px 1px 0 #000;
+}
+
+.spins-display {
+    background: linear-gradient(145deg, #fff3cd, #ffeaa7);
+    border: 4px solid #daa520;
+    border-radius: 18px;
+    padding: 25px;
+    text-align: center;
+    margin-bottom: 30px;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+}
+
+.spins-label {
+    font-size: 1.0rem;
+    color: #856404;
+    text-transform: uppercase;
+    font-weight: bold;
+    text-shadow: 1px 1px 0 #000;
+}
+
+.spins-counter {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 15px;
+}
+
+.spins-icon {
+    font-size: 3.0rem;
+}
+
+.spins-number {
+    font-size: 3.2rem;
+    font-weight: bold;
+    color: #d35400;
+    text-shadow: 3px 3px 0 #000;
+    min-width: 80px;
+}
+
+.wheel-main-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 25px;
+}
+
+.wheel-container {
+    position: relative;
+    width: 1000px; /* ✅ DOBLE DE GRANDE */
+    height: 1000px; /* ✅ DOBLE DE GRANDE */
+    margin: 0 auto;
+}
+
+#winnerWheelCanvas, #loserWheelCanvas {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    border: 8px solid #000; /* Más grueso */
+    background: #f8f9fa;
+    box-shadow: 0 0 35px rgba(0, 0, 0, 0.6);
+}
+
+.wheel-pointer {
+    position: absolute;
+    top: -50px; /* Ajustado para ruleta más grande */
+    left: 50%;
+    transform: translateX(-50%);
+    width: 0;
+    height: 0;
+    border-left: 25px solid transparent;
+    border-right: 25px solid transparent;
+    border-top: 50px solid #ff0000;
+    z-index: 20;
+    filter: drop-shadow(0 0 12px rgba(255, 0, 0, 0.9));
+}
+
+.wheel-center {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 200px; /* ✅ DOBLE DE GRANDE */
+    height: 200px; /* ✅ DOBLE DE GRANDE */
+    background: linear-gradient(145deg, #ffd700, #ff6b6b);
+    border-radius: 50%;
+    border: 8px solid #000;
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 4.5rem; /* ✅ Más grande */
+    color: white;
+    text-shadow: 0 0 10px rgba(0,0,0,0.8);
+}
+
+.spin-controls {
+    text-align: center;
+}
+
+.spin-button {
+    background: linear-gradient(45deg, #e74c3c, #c0392b);
+    color: white;
+    border: none;
+    padding: 18px 36px; /* Más grande */
+    border-radius: 28px;
+    font-family: 'Press Start 2P', cursive;
+    font-size: 1.1rem; /* Más grande */
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 8px 0 #922b21;
+}
+
+.spin-button:hover:not(:disabled) {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 0 #922b21;
+}
+
+.spin-button:disabled {
+    background: linear-gradient(45deg, #95a5a6, #7f8c8d);
+    box-shadow: 0 8px 0 #6c7a89;
+    cursor: not-allowed;
+}
+
+.result-display {
+    margin-top: 20px;
+    padding: 20px;
+    border-radius: 15px;
+    font-size: 1.0rem;
+    max-width: 500px;
+    text-align: center;
+    background: rgba(255, 255, 255, 0.9);
+    border: 4px solid #000;
+}
+
+.result-display.winning {
+    color: #f1c40f;
+    border-color: #f1c40f;
+}
+
+.back-button-container {
+    text-align: center;
+    margin-top: 30px;
+}
+
+.back-button {
+    background: linear-gradient(45deg, #9b59b6, #8e44ad);
+    color: white;
+    border: none;
+    padding: 16px 32px;
+    border-radius: 22px;
+    font-family: 'Press Start 2P', cursive;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 6px 0 #6c3483;
+}
+
+.back-button:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 0 #6c3483;
+}
+
+/* Responsive para pantallas grandes */
+@media (max-width: 1200px) {
+    .wheel-container {
+        width: 800px;
+        height: 800px;
+    }
+    .wheel-center {
+        width: 160px;
+        height: 160px;
+        font-size: 3.8rem;
+    }
+    .wheel-pointer {
+        top: -40px;
+        border-left: 20px solid transparent;
+        border-right: 20px solid transparent;
+        border-top: 40px solid #ff0000;
+    }
+}
+
+@media (max-width: 900px) {
+    .wheel-container {
+        width: 600px;
+        height: 600px;
+    }
+    .wheel-center {
+        width: 120px;
+        height: 120px;
+        font-size: 3.0rem;
+    }
+    .spins-number {
+        font-size: 2.6rem;
+    }
+}
+
+@media (max-width: 600px) {
+    .wheel-container {
+        width: 450px;
+        height: 450px;
+    }
+    .wheel-center {
+        width: 90px;
+        height: 90px;
+        font-size: 2.2rem;
+    }
+    .wheel-pointer {
+        top: -30px;
+        border-left: 15px solid transparent;
+        border-right: 15px solid transparent;
+        border-top: 30px solid #ff0000;
+    }
+    .spins-number {
+        font-size: 2.0rem;
+    }
+    .spin-button {
+        padding: 14px 28px;
+        font-size: 0.8rem;
+    }
+}

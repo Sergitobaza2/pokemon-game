@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ruleta de Nuzlocke - Pokémon</title>
+    <link rel="stylesheet" href="css/ruleta-style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+</head>
+<body>
+    <!-- Fondo con patrón Pokémon -->
+    <div class="pokemon-bg"></div>
+
+    <div class="nuzlocke-container">
+        <!-- Header estilo Pokédex -->
+        <div class="pokemon-header">
+            <div class="pokedex-top">
+                <div class="pokedex-light"></div>
+                <div class="pokedex-speaker"></div>
+            </div>
+            <h1 class="pokemon-title">RULETA DIARIA</h1>
+        </div>
+
+        <!-- Sección de Ruleta Diaria - Contador Regresivo -->
+        <div class="daily-countdown-section">
+            <div class="countdown-display">
+                <div class="countdown-label">RULETA DIARIA</div>
+                <div class="countdown-status" id="dailyCountdownStatus">
+                    Cargando...
+                </div>
+            </div>
+        </div>
+
+        <!-- Contenedor principal de la ruleta -->
+        <div class="wheel-main-container">
+            <div class="wheel-container">
+                <canvas id="wheelCanvas" width="2400" height="2400"></canvas>
+                <!-- Aguja indicadora -->
+                <div class="wheel-pointer"></div>
+                <div class="wheel-center">
+                    <div class="wheel-center-icon">🎯</div>
+                </div>
+            </div>
+
+            <!-- Controles de la ruleta -->
+            <div class="spin-controls">
+                <button id="spinBtn" class="pokemon-button spin-button">
+                    <span class="button-text">GIRAR RULETA</span>
+                    <span class="button-icon">🎰</span>
+                </button>
+                <div id="result" class="result-display"></div>
+            </div>
+        </div>
+
+        <!-- Historial de resultados -->
+        <div class="history-section">
+            <h2 class="history-title">HISTORIAL DE GIROS</h2>
+            <div class="history-container">
+                <div id="historyList" class="history-list">
+                    <div class="history-empty">No has girado aún.</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Botón de volver -->
+        <div class="back-button-container">
+            <button id="backToMenuBtn" class="pokemon-button back-button">
+                <span class="button-text">VOLVER AL MENÚ</span>
+                <span class="button-icon">⬅️</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/zarocknz/javascript-winwheel/Winwheel.min.js"></script>
+    <script type="module" src="js/ruleta.js"></script>
+</body>
+</html>

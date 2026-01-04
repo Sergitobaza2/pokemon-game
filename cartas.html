@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pokémon - Comprar Cartas</title>
+    <link rel="stylesheet" href="css/cartas-style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <link rel="icon" href="image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🃏</text></svg>">
+</head>
+<body>
+    <!-- Fondo con patrón de cartas -->
+    <div class="cards-bg"></div>
+    
+    <!-- Contenedor principal -->
+    <div class="cards-container">
+        <!-- Header -->
+        <div class="cards-header">
+            <div class="pokedex-top">
+                <div class="pokedex-light"></div>
+                <div class="pokedex-speaker"></div>
+            </div>
+            <h1 class="cards-title">TIENDA DE CARTAS</h1>
+        </div>
+
+        <!-- Saldo de monedas -->
+        <div class="coins-balance">
+            <div class="balance-label">TUS MONEDAS</div>
+            <div class="balance-display">
+                <span class="balance-icon">💰</span>
+                <span class="balance-number" id="userCoins">50</span>
+            </div>
+        </div>
+
+        <!-- Grid de cartas -->
+        <div class="cards-grid" id="cardsGrid">
+            <!-- Las cartas se generarán dinámicamente -->
+        </div>
+
+        <!-- Botón de volver -->
+        <div class="back-button">
+            <button id="backBtn" class="back-button-style">VOLVER AL MENÚ</button>
+        </div>
+
+        <!-- Mensaje de feedback -->
+        <div id="cardsMessage" class="message-container" style="display: none;"></div>
+    </div>
+
+    <!-- Scripts -->
+    <script type="module" src="js/firebase-config.js"></script>
+    <script type="module" src="js/cartas.js"></script>
+</body>
+</html>

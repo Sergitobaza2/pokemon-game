@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PokéDex - Inicio de Sesión</title>
+    <link rel="stylesheet" href="css/style.css">
+    <!-- Favicon Pokémon -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⚡</text></svg>">
+</head>
+<body>
+    <div class="container">
+        <!-- Formulario de Login -->
+        <div class="form-container" id="loginForm">
+            <h2>ENTRENADOR, ¡INICIA SESIÓN!</h2>
+            <form id="login">
+                <input type="email" id="loginEmail" placeholder="EMAIL" required>
+                <input type="password" id="loginPassword" placeholder="CONTRASEÑA" required>
+                <button type="submit">¡ENTRAR!</button>
+                <p>¿NO TIENES CUENTA? <a href="#" id="showRegister">¡REGÍSTRATE!</a></p>
+                <div id="loginMessage"></div>
+            </form>
+        </div>
+
+        <!-- Formulario de Registro -->
+        <div class="form-container" id="registerForm" style="display: none;">
+            <h2>¡NUEVO ENTRENADOR!</h2>
+            <form id="register">
+                <input type="email" id="registerEmail" placeholder="EMAIL" required>
+                <input type="password" id="registerPassword" placeholder="CONTRASEÑA" required minlength="6">
+                <input type="password" id="registerPasswordConfirm" placeholder="CONFIRMAR CONTRASEÑA" required minlength="6">
+                <button type="submit">¡EMPIEZA TU AVENTURA!</button>
+                <p>¿YA ERES ENTRENADOR? <a href="#" id="showLogin">¡INICIA SESIÓN!</a></p>
+                <div id="registerMessage"></div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script type="module" src="js/firebase-config.js"></script>
+    <script type="module" src="js/app.js"></script>
+</body>
+</html>

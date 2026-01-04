@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Pokémon Aleatorio</title>
+    <link rel="stylesheet" href="css/menu-style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <style>
+        /* Fondo animado */
+        .animated-pokemon-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            overflow: hidden;
+            background: linear-gradient(135deg, #64b3e7, #4a90e2, #3a6ea5);
+            animation: bgShift 20s infinite alternate;
+        }
+        .animated-pokemon-bg::before,
+        .animated-pokemon-bg::after {
+            content: "";
+            position: absolute;
+            border-radius: 50%;
+            border: 4px solid #000;
+            background: 
+                radial-gradient(circle at 30% 30%, white 40%, transparent 45%),
+                radial-gradient(circle at 70% 70%, #e74c3c 40%, transparent 45%),
+                conic-gradient(from 0deg, #000 25%, transparent 25%) 0 0 / 50% 50%;
+        }
+        .animated-pokemon-bg::before {
+            width: 90px;
+            height: 90px;
+            top: 18%;
+            left: 12%;
+            animation: floatPokeball 16s infinite ease-in-out;
+            opacity: 0.75;
+        }
+        .animated-pokemon-bg::after {
+            width: 70px;
+            height: 70px;
+            bottom: 28%;
+            right: 18%;
+            animation: floatPokeball 19s infinite ease-in-out reverse;
+            opacity: 0.65;
+            border-width: 3px;
+        }
+        @keyframes bgShift {
+            0%, 100% { background-position: 0% 50%; }
+        }
+        @keyframes floatPokeball {
+            0%, 100% { transform: translate(0, 0) rotate(0deg); }
+            25% { transform: translate(25px, -35px) rotate(90deg); }
+            50% { transform: translate(0, -70px) rotate(180deg); }
+            75% { transform: translate(-25px, -35px) rotate(270deg); }
+        }
+
+        /* Contenedor principal de la app */
+        .app-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+            max-width: 520px;
+            margin: 0 auto;
+            padding: 16px;
+            box-sizing: border-box;
+            min-height: 100dvh;
+            min-height: calc(100vh - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+        }
+
+        /* Tarjeta de contenido */
+        .pokemon-card {
+            width: 100%;
+            background: rgba(255, 255, 255, 0.92);
+            backdrop-filter: blur(6px);
+            border: 6px solid #000;
+            border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* Área con scroll: solo el contenido del Pokémon */
+        .scrollable-content {
+            max-height: calc(100dvh - 220px);
+            overflow-y: auto;
+            padding: 20px;
+            padding-bottom: 10px;
+        }
+
+        @supports not (height: 100dvh) {
+            .scrollable-content {
+                max-height: calc(100vh - 220px);
+            }
+        }
+
+        /* Título */
+        .pokemon-title {
+            font-family: 'Press Start 2P', cursive;
+            font-size: 1.3rem;
+            color: #2c3e50;
+            text-align: center;
+            margin: 15px 0 25px;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
+        }
+
+        /* Sección de usos disponibles */
+        .usos-disponibles-section {
+            text-align: center;
+            margin: 15px 0 10px 0; /* Espacio arriba y abajo */
+        }
+
+        .usos-disponibles-display {
+            font-family: 'Press Start 2P', cursive;
+            font-size: 1.0rem; /* Un poco más pequeño que el título */
+            color: #e74c3c; /* Color llamativo */
+            background: rgba(0, 0, 0, 0.7);
+            padding: 8px 16px;
+            border-radius: 16px;
+            display: inline-block;
+            border: 2px solid #000;
+            box-shadow: 0 4px 0 #922b21; /* Sombra del botón */
+        }
+
+        /* Botón generar */
+        .generate-section {
+            text-align: center;
+            margin: 25px 0;
+        }
+        .pokemon-button {
+            background: linear-gradient(45deg, #e74c3c, #c0392b);
+            color: white;
+            border: none;
+            padding: 16px 32px;
+            border-radius: 28px;
+            font-family: 'Press Start 2P', cursive;
+            font-size: 0.9rem;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            transition: all 0.25s ease;
+            box-shadow: 0 6px 12px rgba(0,0,0,0.3);
+            min-width: 240px;
+        }
+        .pokemon-button:hover:not(:disabled) {
+            transform: scale(1.06);
+            box-shadow: 0 8px 16px rgba(0,0,0,0.4);
+        }
+
+        /* Display del Pokémon */
+        .pokemon-display {
+            position: relative;
+            text-align: center;
+            min-height: 380px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 0 10px;
+            width: 100%;
+            max-width: 500px;
+            margin: 0 auto;
+        }
+
+        /* Imagen del Pokémon */
+        .pokemon-image {
+            width: 220px;
+            height: auto;
+            image-rendering: pixelated;
+            image-rendering: -moz-crisp-edges;
+            image-rendering: crisp-edges;
+            margin: 20px auto;
+            display: block;
+            filter: drop-shadow(0 6px 12px rgba(0,0,0,0.6));
+            transition: transform 0.3s ease;
+        }
+        .pokemon-image:hover {
+            transform: scale(1.07);
+        }
+
+        /* Nombre */
+        .pokemon-name {
+            font-size: 1.6rem;
+            color: #e74c3c;
+            text-transform: capitalize;
+            margin-top: 15px;
+            font-weight: bold;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+        }
+
+        /* Tipos */
+        .pokemon-types {
+            margin-top: 16px;
+            display: flex;
+            gap: 14px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+        .type-icon {
+            font-size: 2.2rem;
+            filter: drop-shadow(0 3px 5px rgba(0,0,0,0.6));
+            animation: floatType 3.5s infinite ease-in-out;
+        }
+        .type-icon:nth-child(2) {
+            animation-delay: 0.6s;
+        }
+        @keyframes floatType {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        /* Habilidad */
+        .pokemon-ability {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            margin-top: 18px;
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 24px;
+            font-size: 1.1rem;
+            backdrop-filter: blur(4px);
+            width: 90%;
+            max-width: 360px;
+        }
+        .ability-icon { font-size: 1.5rem; }
+        .ability-name { font-weight: bold; text-transform: capitalize; }
+
+        /* Naturaleza */
+        .pokemon-nature {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            margin-top: 16px;
+            background: rgba(0, 0, 0, 0.6);
+            color: #2ecc71;
+            padding: 10px 20px;
+            border-radius: 22px;
+            font-size: 1.05rem;
+            backdrop-filter: blur(3px);
+            width: 90%;
+            max-width: 340px;
+        }
+        .nature-icon { font-size: 1.3rem; }
+
+        /* Movimientos */
+        .pokemon-moves {
+            margin-top: 18px;
+            background: rgba(0, 0, 0, 0.65);
+            color: #f39c12;
+            padding: 12px;
+            border-radius: 16px;
+            font-size: 1.05rem;
+            backdrop-filter: blur(3px);
+            width: 94%;
+            max-width: 360px;
+            text-align: center;
+        }
+
+        .moves-header {
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: #ffeb3b;
+            font-size: 1.2rem;
+            text-transform: uppercase;
+        }
+
+        .moves-list {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .move-item {
+            background: rgba(255, 255, 255, 0.15);
+            padding: 6px 12px;
+            border-radius: 14px;
+            font-size: 0.95rem;
+            min-width: 80px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            backdrop-filter: blur(2px);
+        }
+
+        /* IVs */
+        .pokemon-ivs {
+            margin-top: 20px;
+            background: rgba(0, 0, 0, 0.75);
+            color: white;
+            padding: 12px;
+            border-radius: 14px;
+            font-size: 1.1rem;
+            backdrop-filter: blur(3px);
+            width: 94%;
+            max-width: 360px;
+            font-family: 'Courier New', monospace;
+            text-align: center;
+        }
+
+        .iv-header {
+            text-align: center;
+            font-weight: bold;
+            margin-bottom: 12px;
+            color: #ffeb3b;
+            font-size: 1.3rem;
+        }
+
+        .iv-stat {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 6px 0;
+            padding: 4px 8px;
+            border-radius: 6px;
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        .iv-stat-label {
+            color: #ecf0f1;
+            font-weight: bold;
+            width: 70px;
+            text-align: left;
+            text-transform: capitalize;
+        }
+
+        .iv-values {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .iv-value {
+            color: #2ecc71;
+            font-weight: bold;
+            min-width: 28px;
+            text-align: right;
+        }
+
+        .iv-max {
+            color: #95a5a6;
+            font-size: 0.9em;
+        }
+
+        /* Botón de volver - siempre visible */
+        .back-button-container {
+            padding: 16px 20px 24px;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+        }
+
+        .back-button {
+            background: linear-gradient(45deg, #3498db, #2980b9);
+            color: white;
+            border: none;
+            padding: 14px 28px;
+            border-radius: 24px;
+            font-family: 'Press Start 2P', cursive;
+            font-size: 0.8rem;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        .back-button:hover {
+            transform: scale(1.04);
+        }
+
+        /* Carga y error */
+        .pokemon-loading,
+        .pokemon-error {
+            color: #7f8c8d;
+            font-size: 1.2rem;
+            text-align: center;
+            padding: 50px 20px;
+            font-family: 'Press Start 2P', cursive;
+            width: 100%;
+        }
+        .pokemon-error {
+            color: #e74c3c;
+        }
+
+        /* Animación de entrada */
+        .pokemon-enter {
+            animation: fadeInScale 0.9s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+            opacity: 0;
+            transform: scale(0.85);
+        }
+        @keyframes fadeInScale {
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        /* Responsive */
+        @media (max-width: 480px) {
+            .pokemon-image { width: 190px; }
+            .pokemon-name { font-size: 1.4rem; }
+            .type-icon { font-size: 2rem; }
+            .pokemon-ability, .pokemon-nature { font-size: 0.95rem; padding: 8px 16px; }
+            .pokemon-moves { font-size: 1rem; padding: 10px; }
+            .move-item { font-size: 0.85rem; padding: 5px 10px; min-width: 70px; }
+            .pokemon-ivs { font-size: 1rem; }
+            .iv-stat-label { width: 60px; font-size: 0.95rem; }
+            .iv-value { min-width: 24px; }
+        }
+
+        @media (max-height: 650px) {
+            .scrollable-content {
+                max-height: calc(100dvh - 260px);
+            }
+            @supports not (height: 100dvh) {
+                .scrollable-content {
+                    max-height: calc(100vh - 260px);
+                }
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="animated-pokemon-bg"></div>
+
+    <div class="app-container">
+        <div class="pokemon-card">
+            <div class="scrollable-content">
+                <h1 class="pokemon-title">POKÉMON ALEATORIO</h1>
+
+                <div class="usos-disponibles-section">
+                    <div id="usosDisponiblesDisplay" class="usos-disponibles-display">Usos: 0</div>
+                </div>
+
+                <div class="generate-section">
+                    <button id="generateBtn" class="pokemon-button">
+                        <span class="button-text">GENERAR</span>
+                        <span class="button-icon">✨</span>
+                    </button>
+                </div>
+
+                <div class="pokemon-display" id="pokemonDisplay">
+                    <p style="color: #7f8c8d; font-size: 1.2rem;">¡Haz clic en GENERAR!</p>
+                </div>
+            </div>
+
+            <div class="back-button-container">
+                <button class="back-button" onclick="window.history.back()">← VOLVER</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/random-pokemon.js"></script>
+
+    <script>
+        (function() {
+            const style = document.createElement('style');
+            style.textContent = `
+                @keyframes fadeInOut {
+                    0%, 100% { opacity: 0; transform: scale(0.5); }
+                    50% { opacity: 0.8; transform: scale(1); }
+                }
+            `;
+            document.head.appendChild(style);
+        })();
+    </script>
+</body>
+</html>
