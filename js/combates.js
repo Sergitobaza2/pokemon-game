@@ -6,7 +6,7 @@ const WINNER_OPTIONS = [
     { text: 'Cambio favorable', type: 'favorableSwitch', emoji: '🔄', color: '#3498db' },
     { text: '2 minisetas', type: 'twoMinisetas', emoji: '👕👕', color: '#e74c3c' },
     { text: 'Revivir', type: 'revive', emoji: '🕊️', color: '#2ecc71' },
-    { text: '4 monedas extra', type: 'coins4', emoji: '💰+4', color: '#f1c40f' },
+    { text: '5 monedas extra', type: 'coins5', emoji: '💰+5', color: '#f1c40f' },
     { text: 'Randomizar habilidad', type: 'randomizeAbility', emoji: '🎲', color: '#8e44ad' },
     { text: 'Master Ball', type: 'masterBall', emoji: '🎯', color: '#d35400' },
     { text: 'Pokémon aleatorio', type: 'pokemon', emoji: '🌿', color: '#1abc9c' }
@@ -128,8 +128,8 @@ async function consumeSpinAndApply(type, option) {
 
         // ✅ APLICAR EFECTOS INMEDIATOS SEGÚN EL TIPO DE RECOMPENSA
         switch (option.type) {
-            case 'coins4':
-                updateData.coins = (data.coins || 0) + 4;
+            case 'coins5':
+                updateData.coins = (data.coins || 0) + 5;
                 break;
             case 'coins2':
                 updateData.coins = (data.coins || 0) + 2;
