@@ -9,7 +9,7 @@ const WHEEL_OPTIONS = [
     { text: 'Naturaleza', type: 'nature', emoji: '🌿', color: '#f1c40f' },
     { text: 'Miniseta', type: 'miniseta', emoji: '👕', color: '#9b59b6' },
     { text: 'Banear', type: 'ban', emoji: '🚫', color: '#e74c3c' },
-    { text: '50 monedas extra', type: 'coins', value: 50, emoji: '💰', color: '#f39c12' }
+    { text: '5 monedas extra', type: 'coins', value: 5, emoji: '💰', color: '#f39c12' }
 ];
 
 let currentUserId = null;
@@ -162,7 +162,7 @@ async function applyWheelEffect(option) {
 
         switch (option.type) {
             case 'coins':
-                updateData.coins = increment(50);
+                updateData.coins = increment(5);
                 break;
             case 'bonusSpin':
                 updateData.bonusSpins = increment(2);
