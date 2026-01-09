@@ -1,22 +1,27 @@
-import { auth, db, onAuthStateChanged, doc, getDoc, updateDoc } from './firebase-config.js';
+import { auth, db, onAuthStateChanged, doc, getDoc, updateDoc, arrayUnion } from './firebase-config.js';
 
-// === OPCIONES DE LAS RULETAS ===
+// === OPCIONES DE LA RULETA GANADORA ===
 const WINNER_OPTIONS = [
     { text: 'Objeto competitivo', type: 'competitive', emoji: '💎', color: '#9b59b6' },
-    { text: 'Captura extra', type: 'extraCapture', emoji: '🪀', color: '#3498db' },
-    { text: 'Skip', type: 'skip', emoji: '⏭️', color: '#e74c3c' },
-    { text: 'Naturaleza', type: 'nature', emoji: '🌿', color: '#2ecc71' },
-    { text: 'Habilidad oculta', type: 'hiddenAbility', emoji: '🌟', color: '#f39c12' },
-    { text: 'Moneda prodigiosa', type: 'luckyCoin', emoji: '🪙', color: '#d35400' }
+    { text: 'Cambio favorable', type: 'favorableSwitch', emoji: '🔄', color: '#3498db' },
+    { text: '2 minisetas', type: 'twoMinisetas', emoji: '👕👕', color: '#e74c3c' },
+    { text: 'Revivir', type: 'revive', emoji: '🕊️', color: '#2ecc71' },
+    { text: '4 monedas extra', type: 'coins4', emoji: '💰+4', color: '#f1c40f' },
+    { text: 'Randomizar habilidad', type: 'randomizeAbility', emoji: '🎲', color: '#8e44ad' },
+    { text: 'Master Ball', type: 'masterBall', emoji: '🎯', color: '#d35400' },
+    { text: 'Pokémon aleatorio', type: 'pokemon', emoji: '🌿', color: '#1abc9c' }
 ];
 
+// === OPCIONES DE LA RULETA PERDEDORA ===
 const LOSER_OPTIONS = [
-    { text: 'Perder 1 vida', type: 'loseLife', emoji: '💔', color: '#c0392b' },
-    { text: 'Perder 2 vidas', type: 'loseLife2', emoji: '💀', color: '#7f8c8d' },
-    { text: 'Banear Pokémon', type: 'ban', emoji: '🚫', color: '#2c3e50' },
-    { text: 'Pérdida de objeto', type: 'loseItem', emoji: '📦', color: '#8e44ad' },
-    { text: 'Nada', type: 'nothing', emoji: '😐', color: '#bdc3c7' },
-    { text: 'Revivir', type: 'revive', emoji: '🕊️', color: '#27ae60' }
+    { text: '2 monedas extra', type: 'coins2', emoji: '💰+2', color: '#27ae60' },
+    { text: 'Chapas', type: 'chapas', emoji: '🎖️', color: '#f39c12' },
+    { text: 'Liberar Pokémon', type: 'releasePokemon', emoji: '🕊️', color: '#16a085' },
+    { text: 'Pokémon baneado', type: 'ban', emoji: '🚫', color: '#c0392b' },
+    { text: 'Piedra evolutiva', type: 'evolutionStone', emoji: '🪨', color: '#8e44ad' },
+    { text: 'Restos', type: 'leftovers', emoji: '🍖', color: '#2c3e50' },
+    { text: 'Dar 2 monedas', type: 'loseCoins2', emoji: '💸-2', color: '#7f8c8d' },
+    { text: 'Naturaleza', type: 'nature', emoji: '🌿', color: '#27ae60' }
 ];
 
 let currentUserId = null;
@@ -29,14 +34,14 @@ function createWheel(canvasId, options, callback) {
     const segments = options.map(option => ({
         fillStyle: option.color,
         text: `${option.emoji}\n${option.text}`,
-        textFontSize: 60,
+        textFontSize: 50,
         textFontFamily: 'Arial, sans-serif',
         textFillStyle: '#ffffff',
         textStrokeStyle: '#000000',
         textLineWidth: 2,
         textOrientation: 'horizontal',
         textAlignment: 'center',
-        textMargin: 120
+        textMargin: 100
     }));
 
     return new Winwheel({
@@ -44,14 +49,14 @@ function createWheel(canvasId, options, callback) {
         numSegments: options.length,
         outerRadius: 1100,
         innerRadius: 160,
-        textFontSize: 60,
+        textFontSize: 50,
         textFontFamily: 'Arial, sans-serif',
         textFillStyle: '#ffffff',
         textStrokeStyle: '#000000',
         textLineWidth: 8,
         textOrientation: 'horizontal',
         textAlignment: 'center',
-        textMargin: 120,
+        textMargin: 100,
         segments: segments,
         animation: {
             type: 'spinToStop',
@@ -73,8 +78,7 @@ async function handleWinnerSpin() {
     const spins = userData.winnerSpins || 0;
 
     if (spins <= 0) {
-        document.getElementById('winnerResult').textContent = 'No tienes tiradas';
-        document.getElementById('winnerResult').className = 'result-display error';
+        showMessage('winner', 'No tienes tiradas', true);
         isSpinning = false;
         return;
     }
@@ -94,8 +98,7 @@ async function handleLoserSpin() {
     const spins = userData.loserSpins || 0;
 
     if (spins <= 0) {
-        document.getElementById('loserResult').textContent = 'No tienes tiradas';
-        document.getElementById('loserResult').className = 'result-display error';
+        showMessage('loser', 'No tienes tiradas', true);
         isSpinning = false;
         return;
     }
@@ -105,7 +108,7 @@ async function handleLoserSpin() {
     loserWheel.startAnimation();
 }
 
-// === CONSUMIR TIRADA Y APLICAR EFECTO ===
+// === CONSUMIR TIRADA Y APLICAR EFECTOS INMEDIATOS ===
 async function consumeSpinAndApply(type, option) {
     try {
         const userRef = doc(db, "users", currentUserId);
@@ -113,28 +116,50 @@ async function consumeSpinAndApply(type, option) {
         if (!userDoc.exists()) return;
 
         const data = userDoc.data();
+        const now = Date.now();
         const updateData = {};
 
+        // Consumir una tirada
         if (type === 'winner') {
             updateData.winnerSpins = (data.winnerSpins || 1) - 1;
-            // Aquí podrías añadir más lógica (ej: dar recompensas)
-            showMessage('winner', `¡${option.text}!`);
         } else {
             updateData.loserSpins = (data.loserSpins || 1) - 1;
-            // Aplicar efectos negativos
-            if (option.type === 'loseLife') {
-                updateData.lives = Math.max((data.lives || 100) - 1, 0);
-            } else if (option.type === 'loseLife2') {
-                updateData.lives = Math.max((data.lives || 100) - 2, 0);
-            }
-            showMessage('loser', `¡${option.text}!`);
         }
 
+        // ✅ APLICAR EFECTOS INMEDIATOS SEGÚN EL TIPO DE RECOMPENSA
+        switch (option.type) {
+            case 'coins4':
+                updateData.coins = (data.coins || 0) + 4;
+                break;
+            case 'coins2':
+                updateData.coins = (data.coins || 0) + 2;
+                break;
+            case 'loseCoins2':
+                updateData.coins = Math.max((data.coins || 0) - 2, 0);
+                break;
+            case 'pokemon':
+                updateData.randomEncountersAvailable = (data.randomEncountersAvailable || 0) + 1;
+                break;
+            // El resto (objetos, minisetas, etc.) no modifican recursos directamente
+        }
+
+        // Guardar en historial de recompensas (para ver en menú)
+        const rewardEntry = {
+            id: now,
+            type: option.type,
+            text: option.text,
+            emoji: option.emoji,
+            timestamp: now,
+            used: false
+        };
+        updateData.dailyRewards = arrayUnion(rewardEntry);
+
         await updateDoc(userRef, updateData);
+        showMessage(type, `¡${option.text}!`);
         loadUserData();
 
     } catch (error) {
-        console.error("Error al aplicar efecto:", error);
+        console.error("Error al aplicar recompensa:", error);
         showMessage(type, 'Error al procesar', true);
     } finally {
         isSpinning = false;
@@ -148,7 +173,7 @@ function showMessage(type, text, isError = false) {
     el.style.display = 'block';
 }
 
-// === CALLBACKS ===
+// === CALLBACKS DE FINALIZACIÓN ===
 function handleWinnerResult() {
     const idx = winnerWheel.getIndicatedSegmentNumber() - 1;
     const option = WINNER_OPTIONS[idx];
@@ -174,7 +199,7 @@ async function loadUserData() {
     }
 }
 
-// === INICIALIZAR ===
+// === INICIALIZAR TODO ===
 function init() {
     winnerWheel = createWheel('winnerWheelCanvas', WINNER_OPTIONS, handleWinnerResult);
     loserWheel = createWheel('loserWheelCanvas', LOSER_OPTIONS, handleLoserResult);
@@ -188,7 +213,7 @@ function init() {
     });
 }
 
-// === AUTH ===
+// === AUTH STATE ===
 onAuthStateChanged(auth, async (user) => {
     if (user) {
         currentUserId = user.uid;
