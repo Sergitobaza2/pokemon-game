@@ -6,7 +6,7 @@
     <title>Pokémon - Menú Principal</title>
     <link rel="stylesheet" href="css/menu-style.css">
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
-    <link rel="icon" href="image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⚡</text></svg>">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>⚡</text></svg>">
 </head>
 <body>
     <!-- Fondo con patrón Pokémon -->
@@ -23,19 +23,19 @@
             </section>
 
             <section class="lives-panel">
-                <h3 class="panel-title">VIDAS RESTANTES</h3>
+                <h3 class="panel-title">VIDAS</h3>
                 <div class="lives-display">
-                    <span class="lives-number" id="livesCount">20</span>
-                    <span class="lives-max">/ 20</span>
+                    <span class="lives-number" id="livesCount">100</span>
+                    <span class="lives-max">/ 100</span>
                 </div>
-                <div class="hearts-container" id="heartsDisplay"></div>
+                <!-- ❌ Corazones eliminados para evitar saturación con 100 vidas -->
             </section>
 
             <section class="coins-panel">
                 <h3 class="panel-title">MONEDAS</h3>
                 <div class="coins-display">
                     <span class="coins-icon">💰</span>
-                    <span class="coins-number" id="coinsCount">100</span>
+                    <span class="coins-number" id="coinsCount">5</span>
                 </div>
             </section>
 
@@ -154,7 +154,7 @@
         </div>
     </div>
 
-    <!-- Scripts (sin sonidos para evitar 404) -->
+    <!-- Scripts -->
     <script type="module" src="js/firebase-config.js"></script>
     <script type="module" src="js/menu.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>

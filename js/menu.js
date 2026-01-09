@@ -2,7 +2,6 @@ import { auth, db, onAuthStateChanged, doc, getDoc, updateDoc, arrayUnion, incre
 
 const userName = document.getElementById('userName');
 const livesCount = document.getElementById('livesCount');
-const heartsDisplay = document.getElementById('heartsDisplay');
 const coinsCount = document.getElementById('coinsCount');
 const loseLifeBtn = document.getElementById('loseLifeBtn');
 const logoutBtn = document.getElementById('logoutBtn');
@@ -14,30 +13,22 @@ const generatedPokemonList = document.getElementById('generatedPokemonList');
 const usedCardsList = document.getElementById('usedCardsList');
 const rewardsList = document.getElementById('rewardsList');
 
+// ✅ Inicializado en 100
 let currentUserId = null;
-let currentLives = 20;
-let currentCoins = 100;
+let currentLives = 100;
+let currentCoins = 5;
 let currentSpins = 2;
 
-// ✅ Medallas: 100 monedas, 0 tiradas
 const KANTO_BADGES = [
-    { id: 'boulder', name: 'Roca', icon: 'https://i.imgur.com/ENobYln.png', reward: { coins: 100, spins: 0 } },
-    { id: 'cascade', name: 'Cascada', icon: 'https://i.imgur.com/rDQSFv6.png', reward: { coins: 100, spins: 0 } },
-    { id: 'thunder', name: 'Trueno', icon: 'https://i.imgur.com/C0FTpbS.png', reward: { coins: 100, spins: 0 } },
-    { id: 'rainbow', name: 'Arcoíris', icon: 'https://i.imgur.com/HrHK2mG.png', reward: { coins: 100, spins: 0 } },
-    { id: 'soul', name: 'Alma', icon: 'https://i.imgur.com/vTtUoIt.png', reward: { coins: 100, spins: 0 } },
-    { id: 'marsh', name: 'Pantano', icon: 'https://i.imgur.com/9lJclNy.png', reward: { coins: 100, spins: 0 } },
-    { id: 'volcano', name: 'Volcán', icon: 'https://i.imgur.com/32D9BjC.png', reward: { coins: 100, spins: 0 } },
-    { id: 'earth', name: 'Tierra', icon: 'https://i.imgur.com/oNb3Wfg.png', reward: { coins: 100, spins: 0 } }
+    { id: 'boulder', name: 'Roca', icon: 'https://i.imgur.com/ENobYln.png', reward: { coins: 0, spins: 0 } },
+    { id: 'cascade', name: 'Cascada', icon: 'https://i.imgur.com/rDQSFv6.png', reward: { coins: 0, spins: 0 } },
+    { id: 'thunder', name: 'Trueno', icon: 'https://i.imgur.com/C0FTpbS.png', reward: { coins: 0, spins: 0 } },
+    { id: 'rainbow', name: 'Arcoíris', icon: 'https://i.imgur.com/HrHK2mG.png', reward: { coins: 0, spins: 0 } },
+    { id: 'soul', name: 'Alma', icon: 'https://i.imgur.com/vTtUoIt.png', reward: { coins: 0, spins: 0 } },
+    { id: 'marsh', name: 'Pantano', icon: 'https://i.imgur.com/9lJclNy.png', reward: { coins: 0, spins: 0 } },
+    { id: 'volcano', name: 'Volcán', icon: 'https://i.imgur.com/32D9BjC.png', reward: { coins: 0, spins: 0 } },
+    { id: 'earth', name: 'Tierra', icon: 'https://i.imgur.com/oNb3Wfg.png', reward: { coins: 0, spins: 0 } }
 ];
-
-// ✅ Liga: 150 monedas, 0 tiradas
-const ELITE_LEAGUE = {
-    id: 'elite',
-    name: 'Campeón',
-    icon: '🏆',
-    reward: { coins: 150, spins: 0 }
-};
 
 function showMessage(text, isError = false) {
     menuMessage.textContent = text;
@@ -46,19 +37,10 @@ function showMessage(text, isError = false) {
     setTimeout(() => { menuMessage.style.display = 'none'; }, 4000);
 }
 
-function renderHearts() {
-    heartsDisplay.innerHTML = '';
-    for (let i = 0; i < 20; i++) {
-        const heart = document.createElement('div');
-        heart.className = `heart ${i >= currentLives ? 'lost' : ''}`;
-        heartsDisplay.appendChild(heart);
-    }
-}
-
+// ✅ Solo actualiza el contador numérico
 function updateUI() {
     livesCount.textContent = currentLives;
     coinsCount.textContent = Math.max(0, currentCoins);
-    renderHearts();
 }
 
 async function loseLife() {
@@ -75,7 +57,6 @@ async function loseLife() {
     }
 }
 
-// ✅ Actualizada: oculta tiradas si son 0
 function showBadgeCelebration(badge) {
     const celebrationEl = document.getElementById('badgeCelebration');
     const badgeImageEl = document.getElementById('celebrationBadgeImage');
@@ -111,7 +92,6 @@ function showBadgeCelebration(badge) {
     }, 4000);
 }
 
-// ✅ NUEVA: actualizar botón de Liga tras cualquier cambio en medallas
 function updateEliteButtonAfterBadges(userBadges) {
     const userDocRef = doc(db, "users", currentUserId);
     getDoc(userDocRef).then((docSnap) => {
@@ -124,10 +104,15 @@ function updateEliteButtonAfterBadges(userBadges) {
 
 async function claimBadge(badge) {
     try {
-        const userDoc = await getDoc(doc(db, "users", currentUserId));
+        const userDocRef = doc(db, "users", currentUserId);
+        const userDoc = await getDoc(userDocRef);
         if (!userDoc.exists()) return;
+
         const userData = userDoc.data();
         const currentBadges = userData.badges || {};
+        // ✅ Usar 100 como fallback en la lógica de recompensas
+        const currentLives = userData.lives ?? 100;
+        const livesAtLastBadge = userData.livesAtLastBadge ?? 100;
 
         if (currentBadges[badge.id]) return;
 
@@ -141,20 +126,30 @@ async function claimBadge(badge) {
             }
         }
 
+        const livesLostSinceLastBadge = livesAtLastBadge - currentLives;
+        const livesLostAdjusted = Math.max(livesLostSinceLastBadge, 0);
+        const rewardCoins = Math.max(6 - livesLostAdjusted, 0);
+
         const newBadges = { ...currentBadges, [badge.id]: true };
-        await updateDoc(doc(db, "users", currentUserId), {
-            coins: increment(badge.reward.coins),
+
+        await updateDoc(userDocRef, {
+            coins: increment(rewardCoins),
             spins: increment(badge.reward.spins),
-            badges: newBadges
+            badges: newBadges,
+            livesAtLastBadge: currentLives
         });
 
-        currentCoins += badge.reward.coins;
+        currentCoins += rewardCoins;
         currentSpins += badge.reward.spins;
         updateUI();
         renderBadges(newBadges);
+
+        badge.reward.coins = rewardCoins;
         showBadgeCelebration(badge);
-        
-        // ✅ ACTUALIZAR BOTÓN DE LIGA INMEDIATAMENTE
+
+        const livesText = livesLostAdjusted > 0 ? `( -${livesLostAdjusted} vidas)` : '';
+        showMessage(`¡Medalla ${badge.name} obtenida! +${rewardCoins} monedas${livesText}.`);
+
         updateEliteButtonAfterBadges(newBadges);
 
     } catch (error) {
@@ -163,7 +158,6 @@ async function claimBadge(badge) {
     }
 }
 
-// ✅ Celebración de la Liga
 function showEliteCelebration(coins, spins) {
     const celebrationEl = document.getElementById('badgeCelebration');
     const badgeImageEl = document.getElementById('celebrationBadgeImage');
@@ -207,10 +201,10 @@ function showEliteCelebration(coins, spins) {
     `;
 }
 
-// ✅ Reclamar Liga: 150 monedas, una vez
 async function claimEliteLeague() {
     try {
-        const userDoc = await getDoc(doc(db, "users", currentUserId));
+        const userDocRef = doc(db, "users", currentUserId);
+        const userDoc = await getDoc(userDocRef);
         if (!userDoc.exists()) return;
 
         const userData = userDoc.data();
@@ -221,19 +215,25 @@ async function claimEliteLeague() {
             return;
         }
 
-        const rewardCoins = 150;
-        const rewardSpins = 0;
+        // ✅ Usar 100 como fallback
+        const currentLives = userData.lives ?? 100;
+        const livesAtLastBadge = userData.livesAtLastBadge ?? 100;
 
-        await updateDoc(doc(db, "users", currentUserId), {
+        const livesLostSinceLastBadge = livesAtLastBadge - currentLives;
+        const livesLostAdjusted = Math.max(livesLostSinceLastBadge, 0);
+        const rewardCoins = Math.max(6 - livesLostAdjusted, 0);
+
+        await updateDoc(userDocRef, {
             coins: increment(rewardCoins),
-            spins: increment(rewardSpins),
+            spins: increment(0),
             eliteBeaten: true
         });
 
         currentCoins += rewardCoins;
-        currentSpins += rewardSpins;
         updateUI();
-        showEliteCelebration(rewardCoins, rewardSpins);
+        showEliteCelebration(rewardCoins, 0);
+
+        showMessage(`¡Liga completada! +${rewardCoins} monedas${livesLostAdjusted > 0 ? ` (-${livesLostAdjusted} vidas)` : ''}.`);
 
     } catch (error) {
         console.error("Error al completar la Liga Pokémon:", error);
@@ -436,7 +436,6 @@ function renderOwnedCardsAndPokemon(userData) {
             ).join('');
             const movesList = p.moves.map(move => `<span class="move-tag">${move}</span>`).join('');
 
-            // ✅ IVs con abreviaturas y diseño estético
             const ivs = p.ivs || { hp: 0, attack: 0, defense: 0, specialAttack: 0, specialDefense: 0, speed: 0 };
 
             const statLabels = {
@@ -522,17 +521,21 @@ onAuthStateChanged(auth, async (user) => {
                 return;
             }
 
-            currentLives = userData.lives ?? 20;
-            currentCoins = userData.coins ?? 100;
+            // ✅ Cargar con fallback a 100
+            currentLives = userData.lives ?? 100;
+            currentCoins = userData.coins ?? 5;
             currentSpins = userData.spins ?? 2;
 
             const updateData = {};
             let needsUpdate = false;
-            if (userData.coins === undefined) { updateData.coins = 100; needsUpdate = true; }
+
+            // ✅ Corregido: todos los valores iniciales ahora usan 100 o 5
+            if (userData.coins === undefined) { updateData.coins = 0; needsUpdate = true; }
             if (userData.spins === undefined) { updateData.spins = 2; needsUpdate = true; }
-            if (userData.lives === undefined) { updateData.lives = 20; needsUpdate = true; }
+            if (userData.lives === undefined) { updateData.lives = 100; needsUpdate = true; } // ✅
             if (userData.winnerSpins === undefined) { updateData.winnerSpins = 0; needsUpdate = true; }
             if (userData.loserSpins === undefined) { updateData.loserSpins = 0; needsUpdate = true; }
+            if (userData.livesAtLastBadge === undefined) { updateData.livesAtLastBadge = 100; needsUpdate = true; } // ✅
 
             if (needsUpdate) {
                 await updateDoc(doc(db, "users", currentUserId), updateData);
@@ -541,9 +544,9 @@ onAuthStateChanged(auth, async (user) => {
                 currentLives = updateData.lives ?? currentLives;
             }
 
-            updateUI();
+            updateUI(); // ✅ Actualiza con el valor correcto
 
-            // ✅ Inicialización segura de badges
+            // Inicializar medallas
             let userBadges = userData.badges || {};
             let badgesUpdated = false;
             const updatedBadges = { ...userBadges };

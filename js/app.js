@@ -72,12 +72,13 @@ document.getElementById('register').addEventListener('submit', async (e) => {
 
         const userData = { email, role };
         if (role === 'user') {
-            userData.lives = 20;
-            userData.coins = 100;
+            userData.lives = 100; // ✅ AHORA 100 VIDAS
+            userData.coins = 0;   // ✅ También ajustado a 5 monedas iniciales
             userData.spins = 2;
             userData.randomEncountersAvailable = 0;
-            userData.winnerSpins = 0;   // ✅ NUEVO
-            userData.loserSpins = 0;    // ✅ NUEVO
+            userData.winnerSpins = 0;
+            userData.loserSpins = 0;
+            userData.livesAtLastBadge = 100; // ✅ REFERENCIA INICIAL PARA RECOMPENSAS
         }
 
         await setDoc(doc(db, "users", user.uid), userData);
@@ -132,4 +133,6 @@ document.getElementById('login').addEventListener('submit', async (e) => {
 function showMessage(element, text, type) {
     element.textContent = text;
     element.className = type;
+    element.style.display = 'block';
+    setTimeout(() => { element.style.display = 'none'; }, 3000);
 }

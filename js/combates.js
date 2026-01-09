@@ -1,199 +1,290 @@
 import { auth, db, onAuthStateChanged, doc, getDoc, updateDoc, arrayUnion, increment } from './firebase-config.js';
 
+// ✅ OPCIONES DE LA RULETA DIARIA
+const WHEEL_OPTIONS = [
+    { text: 'Un skip', type: 'skip', emoji: '⏭️', color: '#e91e63' },
+    { text: 'Captura extra', type: 'extraCapture', emoji: '🪀', color: '#34495e' },
+    { text: 'Poción', type: 'potion', emoji: '🧪', color: '#2ecc71' },
+    { text: '1 tirada extra', type: 'bonusSpin', emoji: '🔄', color: '#3498db' },
+    { text: 'Naturaleza', type: 'nature', emoji: '🌿', color: '#f1c40f' },
+    { text: 'Miniseta', type: 'miniseta', emoji: '👕', color: '#9b59b6' },
+    { text: 'Banear', type: 'ban', emoji: '🚫', color: '#e74c3c' },
+    { text: '50 monedas extra', type: 'coins', value: 50, emoji: '💰', color: '#f39c12' }
+];
+
 let currentUserId = null;
-let winnerWheel = null;
-let loserWheel = null;
+let wheel = null;
 let isSpinning = false;
+let spinHistory = [];
+let lastSpinTimestamp = null;
+let bonusSpins = 0;
+let countdownInterval = null;
 
-const winnerSpinsCount = document.getElementById('winnerSpinsCount');
-const loserSpinsCount = document.getElementById('loserSpinsCount');
-const winnerSpinBtn = document.getElementById('winnerSpinBtn');
-const loserSpinBtn = document.getElementById('loserSpinBtn');
-const winnerResult = document.getElementById('winnerResult');
-const loserResult = document.getElementById('loserResult');
+const spinBtn = document.getElementById('spinBtn');
+const resultDisplay = document.getElementById('result');
 const backToMenuBtn = document.getElementById('backToMenuBtn');
+const historyList = document.getElementById('historyList');
+const countdownStatusEl = document.getElementById('dailyCountdownStatus');
 
-const WINNER_REWARDS = [
-    { text: "Objeto competitivo", type: "competitive", emoji: "💎", color: "#9b59b6" },
-    { text: "Cambiar Pokémon rival", type: "changeRival", emoji: "🔄", color: "#3498db" },
-    { text: "2 minisetas", type: "miniseta", value: 2, emoji: "👕", color: "#e91e63" },
-    { text: "Revivir", type: "revive", emoji: "🕊️", color: "#2ecc71" },
-    { text: "100 monedas", type: "coins", value: 100, emoji: "💰", color: "#f1c40f" },
-    { text: "Randomizar habilidad", type: "randomizeAbility", emoji: "🎲", color: "#8e44ad" },
-    { text: "Master Ball", type: "masterBall", emoji: "🎯", color: "#f39c12" },
-    { text: "Pokemon aleatorio", type: "pokemon", emoji: "🌿", color: "#1abc9c" }
-];
-
-const LOSER_REWARDS = [
-    { text: "50 monedas", type: "coins", value: 50, emoji: "💰", color: "#f39c12" },
-    { text: "1 chapa de cada tipo", type: "badgeSet", emoji: "🏅", color: "#34495e" },
-    { text: "Liberar pokemon", type: "release", emoji: "🕊️", color: "#27ae60" },
-    { text: "Pokemon baneado", type: "ban", emoji: "🚫", color: "#e74c3c" },
-    { text: "Piedra evolutiva", type: "evolutionStone", emoji: "🔮", color: "#9b59b6" },
-    { text: "Restos", type: "restos", emoji: "🍖", color: "#7f8c8d" },
-    { text: "-50 monedas", type: "coins", value: -50, emoji: "💸", color: "#c0392b" },
-    { text: "Naturaleza", type: "nature", emoji: "🌿", color: "#2ecc71" }
-];
-
-function initWheels() {
-    const OUTER_RADIUS = 1100;
-    const INNER_RADIUS = 240;
-    const TEXT_FONT_SIZE = 65;
-    const TEXT_MARGIN = 80;
-
-    winnerWheel = new Winwheel({
-        'canvasId': 'winnerWheelCanvas',
-        'numSegments': WINNER_REWARDS.length,
-        'outerRadius': OUTER_RADIUS,
-        'innerRadius': INNER_RADIUS,
-        'textFontSize': TEXT_FONT_SIZE,
+// === INICIALIZAR RULETA ===
+function initWheel() {
+    const segments = WHEEL_OPTIONS.map(option => ({
+        'fillStyle': option.color,
+        'text': `${option.emoji}\n${option.text}`,
+        'textFontSize': 70,
         'textFontFamily': 'Arial, sans-serif',
         'textFillStyle': '#ffffff',
         'textStrokeStyle': '#000000',
-        'textLineWidth': 4,
+        'textLineWidth': 3,
         'textOrientation': 'horizontal',
         'textAlignment': 'center',
-        'textMargin': TEXT_MARGIN,
-        'segments': WINNER_REWARDS.map(opt => ({
-            'fillStyle': opt.color,
-            'text': `${opt.emoji}\n${opt.text}`
-        })),
-        'animation': {
-            'type': 'spinToStop',
-            'duration': 6,
-            'spins': 10,
-            'callbackFinished': () => handleSpinResult('winner')
-        }
-    });
-
-    loserWheel = new Winwheel({
-        'canvasId': 'loserWheelCanvas',
-        'numSegments': LOSER_REWARDS.length,
-        'outerRadius': OUTER_RADIUS,
-        'innerRadius': INNER_RADIUS,
-        'textFontSize': TEXT_FONT_SIZE,
+        'textMargin': 140
+    }));
+    
+    wheel = new Winwheel({
+        'canvasId': 'wheelCanvas',
+        'numSegments': WHEEL_OPTIONS.length,
+        'outerRadius': 1100,
+        'innerRadius': 160,
+        'textFontSize': 70,
         'textFontFamily': 'Arial, sans-serif',
         'textFillStyle': '#ffffff',
         'textStrokeStyle': '#000000',
-        'textLineWidth': 4,
+        'textLineWidth': 10,
         'textOrientation': 'horizontal',
         'textAlignment': 'center',
-        'textMargin': TEXT_MARGIN,
-        'segments': LOSER_REWARDS.map(opt => ({
-            'fillStyle': opt.color,
-            'text': `${opt.emoji}\n${opt.text}`
-        })),
+        'textMargin': 140,
+        'segments': segments,
         'animation': {
             'type': 'spinToStop',
             'duration': 6,
-            'spins': 10,
-            'callbackFinished': () => handleSpinResult('loser')
+            'spins': 12,
+            'callbackFinished': handleSpinResult,
+            'callbackAfter': () => {}
         }
     });
-
-    winnerWheel.draw();
-    loserWheel.draw();
+    wheel.draw();
 }
 
-function showMessage(el, text, isError = false) {
-    el.textContent = text;
-    el.className = isError ? 'result-display error' : 'result-display winning';
-    setTimeout(() => { el.textContent = ''; el.className = 'result-display'; }, 5000);
+// === PUEDE GIRAR HOY? ===
+function canSpinNow() {
+    const now = Date.now();
+    const hasDailySpin = lastSpinTimestamp && (now - lastSpinTimestamp < 24 * 60 * 60 * 1000);
+    return bonusSpins > 0 || !hasDailySpin;
 }
 
-async function handleSpinResult(type) {
-    isSpinning = false;
-    const wheel = type === 'winner' ? winnerWheel : loserWheel;
-    const optionIndex = wheel.getIndicatedSegmentNumber() - 1;
-    const option = type === 'winner' ? WINNER_REWARDS[optionIndex] : LOSER_REWARDS[optionIndex];
-    const resultEl = type === 'winner' ? winnerResult : loserResult;
+// === ACTUALIZAR CONTADOR ===
+function updateCountdownAndButton() {
+    const now = Date.now();
+    const hasDailySpin = lastSpinTimestamp && (now - lastSpinTimestamp < 24 * 60 * 60 * 1000);
+    const canSpin = bonusSpins > 0 || !hasDailySpin;
 
+    spinBtn.disabled = !canSpin || isSpinning;
+
+    if (bonusSpins > 0) {
+        countdownStatusEl.textContent = `¡Tienes ${bonusSpins} tirada${bonusSpins !== 1 ? 's' : ''} extra!`;
+        countdownStatusEl.className = "countdown-status ready";
+    } else if (hasDailySpin) {
+        const nextSpinTime = lastSpinTimestamp + 24 * 60 * 60 * 1000;
+        const remaining = nextSpinTime - now;
+        if (remaining > 0) {
+            const h = Math.floor(remaining / (1000 * 60 * 60));
+            const m = Math.floor((remaining % (1000 * 60 * 60)) / (1000 * 60));
+            const s = Math.floor((remaining % (1000 * 60)) / 1000);
+            countdownStatusEl.textContent = `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
+            countdownStatusEl.className = "countdown-status waiting";
+            if (!countdownInterval) {
+                countdownInterval = setInterval(updateCountdownAndButton, 1000);
+            }
+            return;
+        }
+    }
+
+    if (countdownInterval) {
+        clearInterval(countdownInterval);
+        countdownInterval = null;
+    }
+    if (!hasDailySpin || bonusSpins > 0) {
+        countdownStatusEl.textContent = "¡Gira hoy!";
+        countdownStatusEl.className = "countdown-status ready";
+    }
+}
+
+// === MANEJAR GIRO ===
+async function handleSpin() {
+    if (isSpinning || !canSpinNow()) return;
+
+    isSpinning = true;
+    resultDisplay.style.display = 'none';
+
+    try {
+        if (wheel.animation) {
+            wheel.stopAnimation(false);
+            wheel.rotationAngle = 0;
+            wheel.draw();
+        }
+        wheel.animation.spins = 12 + Math.random() * 4;
+        wheel.startAnimation();
+    } catch (error) {
+        console.error("Error al girar:", error);
+        isSpinning = false;
+    }
+}
+
+// === CONSUMIR TIRADA AL GIRAR ===
+async function consumeSpin() {
+    const userRef = doc(db, "users", currentUserId);
+    const userDoc = await getDoc(userRef);
+    if (!userDoc.exists()) return;
+
+    const data = userDoc.data();
+    const currentBonus = data.bonusSpins || 0;
+
+    if (currentBonus > 0) {
+        await updateDoc(userRef, { bonusSpins: increment(-1) });
+        bonusSpins = currentBonus - 1;
+    } else {
+        await updateDoc(userRef, { lastDailySpin: Date.now() });
+        lastSpinTimestamp = Date.now();
+    }
+}
+
+// === APLICAR RECOMPENSA TRAS GIRO ===
+async function applyWheelEffect(option) {
+    if (!currentUserId) return;
     try {
         const userRef = doc(db, "users", currentUserId);
         const userDoc = await getDoc(userRef);
         if (!userDoc.exists()) return;
 
+        const now = Date.now();
         const updateData = {};
-        let addToRewards = true;
 
-        if (option.type === 'coins') {
-            updateData.coins = increment(option.value);
-            addToRewards = false;
-        } else if (option.type === 'pokemon') {
-            updateData.randomEncountersAvailable = increment(1);
-            addToRewards = false;
-        } else {
-            const rewardEntry = {
-                id: Date.now() + Math.random(),
-                type: option.type,
-                text: option.text,
-                emoji: option.emoji,
-                timestamp: Date.now(),
-                used: false
-            };
-            updateData.dailyRewards = arrayUnion(rewardEntry);
-        }
-
-        if (type === 'winner') {
-            updateData.winnerSpins = increment(-1);
-        } else {
-            updateData.loserSpins = increment(-1);
+        switch (option.type) {
+            case 'coins':
+                updateData.coins = increment(50);
+                break;
+            case 'bonusSpin':
+                updateData.bonusSpins = increment(2);
+                bonusSpins += 2;
+                break;
+            case 'pokemon':
+                // ✅ Añadir un uso para generar Pokémon aleatorio
+                updateData.randomEncountersAvailable = increment(1);
+                break;
+            case 'extraCapture':
+            case 'skip':
+            case 'potion':
+            case 'nature':
+            case 'miniseta':
+            case 'ban':
+                updateData.dailyRewards = arrayUnion({
+                    id: now,
+                    type: option.type,
+                    text: option.text,
+                    emoji: option.emoji,
+                    timestamp: now,
+                    used: false
+                });
+                break;
         }
 
         await updateDoc(userRef, updateData);
-        showMessage(resultEl, `¡${option.text}!`);
-        loadUserData();
+        updateCountdownAndButton();
 
     } catch (error) {
         console.error("Error al aplicar recompensa:", error);
-        showMessage(resultEl, "Error al aplicar recompensa", true);
-        isSpinning = false; // ✅ Asegurar desbloqueo en error
+        resultDisplay.textContent = 'Error al aplicar recompensa';
+        resultDisplay.className = 'result-display error';
     }
 }
 
-// ✅ FUNCIÓN CORREGIDA: Evita el atasco
-async function spinWheel(type) {
-    if (isSpinning) return;
-    isSpinning = true;
+// === AL FINALIZAR GIRO ===
+async function handleSpinResult() {
+    isSpinning = false;
+    const optionIndex = wheel.getIndicatedSegmentNumber() - 1;
+    const option = WHEEL_OPTIONS[optionIndex];
 
-    const wheel = type === 'winner' ? winnerWheel : loserWheel;
+    await consumeSpin();
+    await applyWheelEffect(option);
 
-    // ✅ Detener animación previa y reiniciar
-    if (wheel.animation) {
-        wheel.stopAnimation(false);
+    resultDisplay.textContent = `¡${option.text}!`;
+    resultDisplay.className = 'result-display winning';
+    resultDisplay.style.display = 'block';
+
+    addToHistoryAndSave(option);
+}
+
+// === HISTORIAL ===
+async function addToHistoryAndSave(option) {
+    const now = new Date();
+    const historyItem = {
+        text: option.text,
+        type: option.type,
+        emoji: option.emoji,
+        time: now.toLocaleTimeString('es-ES'),
+        date: now.toLocaleDateString('es-ES'),
+        timestamp: now.getTime()
+    };
+    spinHistory.unshift(historyItem);
+    if (spinHistory.length > 10) spinHistory = spinHistory.slice(0, 10);
+    renderHistory();
+    try {
+        await updateDoc(doc(db, "users", currentUserId), { spinHistory: spinHistory });
+    } catch (error) {
+        console.error("Error al guardar historial:", error);
     }
-    wheel.rotationAngle = 0;
-    wheel.draw();
-
-    // ✅ Nueva animación
-    wheel.animation.spins = 10 + Math.random() * 5;
-    wheel.startAnimation();
 }
 
-async function loadUserData() {
-    const userDoc = await getDoc(doc(db, "users", currentUserId));
-    if (!userDoc.exists()) return;
-
-    const data = userDoc.data();
-    const winnerSpins = data.winnerSpins || 0;
-    const loserSpins = data.loserSpins || 0;
-
-    winnerSpinsCount.textContent = winnerSpins;
-    loserSpinsCount.textContent = loserSpins;
-
-    winnerSpinBtn.disabled = winnerSpins <= 0;
-    loserSpinBtn.disabled = loserSpins <= 0;
+function renderHistory() {
+    historyList.innerHTML = spinHistory.length === 0 
+        ? '<div class="history-empty">No has girado aún.</div>'
+        : spinHistory.map(item => `
+            <div class="history-item">
+                <div class="history-content">
+                    <span class="history-emoji">${item.emoji}</span>
+                    <span class="history-text">${item.text}</span>
+                </div>
+                <div class="history-time">${item.time}</div>
+            </div>
+        `).join('');
 }
 
-winnerSpinBtn.addEventListener('click', () => spinWheel('winner'));
-loserSpinBtn.addEventListener('click', () => spinWheel('loser'));
-backToMenuBtn.addEventListener('click', () => window.location.href = 'menu.html');
+async function loadHistoryFromFirebase() {
+    if (!currentUserId) return;
+    try {
+        const userDoc = await getDoc(doc(db, "users", currentUserId));
+        if (userDoc.exists()) {
+            spinHistory = (userDoc.data().spinHistory || [])
+                .sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0))
+                .slice(0, 10);
+            renderHistory();
+        }
+    } catch (error) {
+        console.error("Error al cargar historial:", error);
+    }
+}
 
+// === EVENTOS ===
+spinBtn.addEventListener('click', handleSpin);
+backToMenuBtn.addEventListener('click', () => {
+    if (countdownInterval) clearInterval(countdownInterval);
+    window.location.href = 'menu.html';
+});
+
+// === INICIALIZACIÓN ===
 onAuthStateChanged(auth, async (user) => {
     if (user) {
         currentUserId = user.uid;
-        await loadUserData();
-        initWheels();
+        const userDoc = await getDoc(doc(db, "users", user.uid));
+        if (userDoc.exists()) {
+            const userData = userDoc.data();
+            lastSpinTimestamp = userData.lastDailySpin || null;
+            bonusSpins = userData.bonusSpins || 0;
+            await loadHistoryFromFirebase();
+        }
+        initWheel();
+        updateCountdownAndButton();
     } else {
         window.location.href = 'index.html';
     }
