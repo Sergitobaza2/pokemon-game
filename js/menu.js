@@ -128,7 +128,7 @@ async function claimBadge(badge) {
 
         const livesLostSinceLastBadge = livesAtLastBadge - currentLives;
         const livesLostAdjusted = Math.max(livesLostSinceLastBadge, 0);
-        const rewardCoins = Math.max(6 - livesLostAdjusted, 0);
+        const rewardCoins = Math.max(8 - livesLostAdjusted, 0);
 
         const newBadges = { ...currentBadges, [badge.id]: true };
 
